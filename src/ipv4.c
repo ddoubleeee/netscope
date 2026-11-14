@@ -1,4 +1,8 @@
 #include "ipv4.h"
+#include <linux/ip.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <netinet/in.h>
 
 ssize_t ipv4_parse(const uint8_t *data, size_t data_len, IPv4Info *result) {
 	struct iphdr header;
@@ -13,9 +17,9 @@ ssize_t ipv4_parse(const uint8_t *data, size_t data_len, IPv4Info *result) {
 
 	uint8_t flags_byte = ntohs(header.frag_off) >> 13;
 	IPv4Flags flags;
-	flags.reserved = flags_byte & 0x04;
-	flags.df = flags_byte & 0x02;
-	flags.mf = flags_byte & 0x01;
+	flags.reserved = (flags_byte & 0x04) != 0;
+	flags.df = (flags_byte & 0x02) != 0;
+	flags.mf = (flags_byte & 0x01) != 0;
 
 	result->flags = flags;
 	result->offset = ntohs(header.frag_off) & 0x1FFF;
@@ -50,9 +54,14 @@ void ipv4_print(const IPv4Info *info) {
 	printf("checksum: %04x\n", info->checksum);
 	printf("src:      %s\n", src_ip);
 	printf("dest:     %s\n", dst_ip);
-	printf("options: ");
-	for (size_t i = 0; i < info->options_len; ++i) {
-		printf("%02x ", info->options[i]);
+	printf("options:  ");
+	if (info->options_len > 0) {
+		for (size_t i = 0; i < info->options_len; ++i) {
+			printf("%02x ", info->options[i]);
+		}
+	}
+	else {
+		printf("None");
 	}
 	printf("\n");
 

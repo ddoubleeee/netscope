@@ -3,17 +3,13 @@
 
 #include <stdint.h>
 #include <sys/types.h>
-#include <stdbool.h>
-#include <linux/ip.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <arpa/inet.h>
 #include <stdio.h>
 
+
 typedef struct IPv4Flags {
-	bool reserved;
-	bool df;
-	bool mf;
+	uint8_t reserved;
+	uint8_t df;
+	uint8_t mf;
 } IPv4Flags;
 
 

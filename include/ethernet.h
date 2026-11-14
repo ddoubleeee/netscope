@@ -2,12 +2,11 @@
 #define NETSCOPE_ETHERNET_H
 
 
-#include <stdint.h>
 #include <linux/if_ether.h>
-#include <netinet/in.h>
 #include <sys/types.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <string.h>
+
 
 typedef struct EthernetInfo {
 	uint8_t src[ETH_ALEN];

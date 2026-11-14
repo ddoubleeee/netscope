@@ -1,3 +1,5 @@
+#include "ethernet.h"
+
 #include <netinet/in.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -19,29 +21,13 @@ int main(int argc, const char *argv[]) {
 	if (fd < 0) {perror("socket"); return EXIT_FAILURE;}
 	ssize_t bytes_read = recv(fd, buf, sizeof(buf), 0);
 	if (bytes_read < 0) {perror("recv"); close(fd); return EXIT_FAILURE;}
-
 	unsigned char *current = buf;
 
-	struct ethhdr ether;
-	memcpy(&ether, current, sizeof(struct ethhdr));
-
-	uint16_t ethertype = ntohs(ether.h_proto);
-	printf("===== Ethernet Header ==================================\n");
-	printf("dest: ");
-	for (int i = 0; i < ETH_ALEN; ++i) {
-		printf("%02x ", ether.h_dest[i]);
-	}
-	printf("\n");
-
-	printf("src:  ");
-	for (int i = 0; i < ETH_ALEN; ++i) {
-		printf("%02x ", ether.h_source[i]);
-	}
-	printf("\n");
-	printf("EtherType: 0x%04x (%s)\n", ethertype, ethertype == ETH_P_IP ? "IPv4" : "");
-	printf("========================================================\n");
-
-	current += sizeof(struct ethhdr);
+	EthernetInfo ethernet_hdr;
+	ssize_t parsed = ethernet_parse(current, sizeof(current), &ethernet_hdr);
+	ethernet_print(&ethernet_hdr);
+	current += parsed;
+	/*
 	switch (ethertype) {
 		case ETH_P_IP: {
 			struct iphdr ip4;
@@ -67,13 +53,13 @@ int main(int argc, const char *argv[]) {
 			printf("src:      %s\n", src_ip);
 			printf("dest:     %s\n", dst_ip);
 			printf("options:  ");
-			if (options_len > 0) {
+			if (options_len == 0) {
+				printf("None");
+			}
+			else {
 				for (int i = 0; i < options_len; ++i) {
 					printf("%x", *(current + sizeof(struct iphdr) + i));
 				}
-			}
-			else {
-				printf("None");
 			}
 			printf("\n===============================\n");
 
@@ -81,6 +67,6 @@ int main(int argc, const char *argv[]) {
 			break;
 		}
 	}
-
+*/
 	return 0;
 }

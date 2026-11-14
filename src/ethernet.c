@@ -1,8 +1,4 @@
 #include "ethernet.h"
-#include <linux/if_ether.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <string.h>
 
 ssize_t ethernet_parse(const uint8_t *data, size_t data_len, EthernetInfo *result) {
 	/* -1 for error */

@@ -1,4 +1,5 @@
 #include "ethernet.h"
+#include <linux/if_ether.h>
 #include <netinet/in.h>
 #include <string.h>
 
@@ -30,7 +31,7 @@ void ethernet_print(const EthernetInfo *info) {
 		printf("%02x ", info->src[i]);
 	}
 	printf("\n");
-	printf("EtherType: 0x%04x (%s)\n", info->ethertype, info->ethertype == ETH_P_IP ? "IPv4" : "");
+	printf("EtherType: 0x%04x (%s)\n", info->ethertype, info->ethertype == ETH_P_IP ? "IPv4" : ETH_P_IPV6? "IPv6" : "");
 	printf("========================================================\n");
 
 }

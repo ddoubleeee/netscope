@@ -1,11 +1,11 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
-
 #include <stdlib.h>
 #include <unistd.h>
+
 #include "ethernet.h"
 #include "ipv4.h"
-
+#include "ipv6.h"
 
 int main() {
 
@@ -25,6 +25,11 @@ int main() {
 		IPv4Info ipv4_hdr;
 		ipv4_parse(current, bytes_read - parsed, &ipv4_hdr);
 		ipv4_print(&ipv4_hdr);
+	}
+	else if (ethernet_hdr.ethertype == ETH_P_IPV6) {
+		IPv6Info ipv6_hdr;
+		ipv6_parse(current, bytes_read - parsed, &ipv6_hdr);
+		ipv6_print(&ipv6_hdr);
 	}
 	return 0;
 }

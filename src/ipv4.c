@@ -1,18 +1,37 @@
 #include "ipv4.h"
+#include "parse_error.h"
 #include <linux/ip.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <netinet/in.h>
 
-ssize_t ipv4_parse(const uint8_t *data, size_t data_len, IPv4Info *result) {
+#define EXPECTED_VERSION 4
+#define MIN_HEADER_SIZE 20
+#define MAX_HEADER_SIZE 60
+
+ssize_t ipv4_parse(const uint8_t *data, size_t buffer_len, IPv4Info *result) {
 	struct iphdr header;
-	if (data_len < sizeof(struct iphdr)) {return -1;}
+	/* at least 20 bytes of fixed header */
+	if (buffer_len < sizeof(struct iphdr)) {return PARSE_ERR_TRUNCATED_HEADER;}
 	memcpy(&header, data, sizeof(struct iphdr));
 
+	if (header.version != EXPECTED_VERSION) {return PARSE_ERR_INVALID_VERSION;}
 	result->version = header.version;
+
+	/* header size matches ihl */
+	size_t header_len = header.ihl * 4;
+	if (header_len < MIN_HEADER_SIZE || header_len > MAX_HEADER_SIZE) {return PARSE_ERR_INVALID_LENGTH;}
+	/* full header with options is correct len */
+	if (header_len > buffer_len) {return PARSE_ERR_TRUNCATED_HEADER;}
 	result->ihl = header.ihl;
+
 	result->tos = header.tos;
-	result->total_len = ntohs(header.tot_len);
+
+	uint16_t total_len = ntohs(header.tot_len);
+	if (total_len < header_len) {return PARSE_ERR_INVALID_LENGTH;}
+	if (total_len > buffer_len) {return PARSE_ERR_TRUNCATED_PAYLOAD;}
+	result->total_len = total_len;
+
 	result->id = ntohs(header.id);
 
 	uint8_t flags_byte = ntohs(header.frag_off) >> 13;
@@ -20,8 +39,9 @@ ssize_t ipv4_parse(const uint8_t *data, size_t data_len, IPv4Info *result) {
 	flags.reserved = (flags_byte & 0x04) != 0;
 	flags.df = (flags_byte & 0x02) != 0;
 	flags.mf = (flags_byte & 0x01) != 0;
-
+	if (flags.reserved != 0) {return PARSE_ERR_RESERVED_BIT;}
 	result->flags = flags;
+
 	result->offset = ntohs(header.frag_off) & 0x1FFF;
 	result->ttl = header.ttl;
 	result->protocol = header.protocol;
@@ -29,10 +49,11 @@ ssize_t ipv4_parse(const uint8_t *data, size_t data_len, IPv4Info *result) {
 	result->src_addr = header.saddr;
 	result->dest_addr = header.daddr;
 
-	result->options_len = header.ihl * 4 - sizeof(struct iphdr);
-	memcpy(result->options, data + sizeof(struct iphdr), result->options_len);
+	size_t options_len = header_len - sizeof(struct iphdr);
+	memcpy(result->options, data + sizeof(struct iphdr), options_len);
+	result->options_len = options_len;
 
-	return sizeof(struct iphdr) + result->options_len;
+	return header_len;
 }
 
 void ipv4_print(const IPv4Info *info) {

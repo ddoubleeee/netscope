@@ -1,6 +1,5 @@
 CC = gcc
 CFLAGS = -std=c23 -Wall -Wextra -Iinclude -O2
-
 TARGET = build/netscope
 SRC = $(wildcard src/*.c)
 

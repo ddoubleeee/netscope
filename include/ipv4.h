@@ -31,7 +31,7 @@ typedef struct IPv4Info {
 
 } IPv4Info;
 
-ssize_t ipv4_parse(const uint8_t *data, size_t data_len, IPv4Info *result);
+ssize_t ipv4_parse(const uint8_t *buffer, size_t buffer_len, IPv4Info *result);
 void ipv4_print(const IPv4Info *info);
 
 

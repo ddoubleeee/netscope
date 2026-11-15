@@ -1,4 +1,5 @@
 #include "ipv6.h"
+#include "parse_error.h"
 #include <arpa/inet.h>
 #include <linux/ipv6.h>
 #include <netinet/in.h>
@@ -9,11 +10,17 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#define EXPECTED_VERSION 6
 
-ssize_t ipv6_parse(const uint8_t *data, size_t data_len, IPv6Info *result) {
+
+ssize_t ipv6_parse(const uint8_t *buffer, size_t buffer_len, IPv6Info *result) {
 	struct ipv6hdr header;
-	if (data_len < sizeof(struct ipv6hdr)) {return -1;}
-	memcpy(&header, data, sizeof(struct ipv6hdr));
+	if (buffer_len < sizeof(struct ipv6hdr)) {return PARSE_ERR_TRUNCATED_HEADER;}
+	memcpy(&header, buffer, sizeof(struct ipv6hdr));
+	if (header.version != EXPECTED_VERSION) {return PARSE_ERR_INVALID_VERSION;}
+	uint16_t payload_len = ntohs(header.payload_len);
+	if (sizeof(struct ipv6hdr) + payload_len > buffer_len) {return PARSE_ERR_TRUNCATED_PAYLOAD;}
+
 
 	result->version = header.version;
 	/* 4 last bits of traffic class + 4 first bits of flow label */
@@ -22,7 +29,7 @@ ssize_t ipv6_parse(const uint8_t *data, size_t data_len, IPv6Info *result) {
 	result->flow_label[0] = header.flow_lbl[0] & 0x0F;
 	result->flow_label[1] = header.flow_lbl[1];
 	result->flow_label[2] = header.flow_lbl[2];
-	result->payload_len = header.payload_len;
+	result->payload_len = payload_len;
 	result->next_header = header.nexthdr;
 	result->hop_limit = header.hop_limit;
 	result->src_addr = header.saddr;

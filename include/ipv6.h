@@ -19,7 +19,7 @@ typedef struct IPv6Info {
 } IPv6Info;
 
 
-ssize_t ipv6_parse(const uint8_t *data, size_t data_len, IPv6Info *result);
+ssize_t ipv6_parse(const uint8_t *buffer, size_t buffer_len, IPv6Info *result);
 void ipv6_print(const IPv6Info *info);
 
 #endif

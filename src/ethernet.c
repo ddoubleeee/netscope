@@ -1,11 +1,12 @@
 #include "ethernet.h"
+#include "parse_error.h"
 #include <linux/if_ether.h>
 #include <netinet/in.h>
 #include <string.h>
 
 ssize_t ethernet_parse(const uint8_t *data, size_t data_len, EthernetInfo *result) {
 	/* -1 for error */
-	if (data_len < sizeof(struct ethhdr)) {return -1;}
+	if (data_len < sizeof(struct ethhdr)) {return PARSE_ERR_TRUNCATED_HEADER;}
 	/* fit into header*/
 	struct ethhdr header;
 	memcpy(&header, data, sizeof(struct ethhdr));

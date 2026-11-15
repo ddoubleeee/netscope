@@ -9,29 +9,25 @@
 #define MIN_HEADER_SIZE 20
 #define MAX_HEADER_SIZE 60
 
-ssize_t ipv4_parse(const uint8_t *data, size_t buffer_len, IPv4Info *result) {
+ssize_t ipv4_parse(const uint8_t *buffer, size_t buffer_len, IPv4Info *result) {
 	struct iphdr header;
 	/* at least 20 bytes of fixed header */
 	if (buffer_len < sizeof(struct iphdr)) {return PARSE_ERR_TRUNCATED_HEADER;}
-	memcpy(&header, data, sizeof(struct iphdr));
-
+	memcpy(&header, buffer, sizeof(struct iphdr));
 	if (header.version != EXPECTED_VERSION) {return PARSE_ERR_INVALID_VERSION;}
-	result->version = header.version;
-
-	/* header size matches ihl */
 	size_t header_len = header.ihl * 4;
-	if (header_len < MIN_HEADER_SIZE || header_len > MAX_HEADER_SIZE) {return PARSE_ERR_INVALID_LENGTH;}
 	/* full header with options is correct len */
 	if (header_len > buffer_len) {return PARSE_ERR_TRUNCATED_HEADER;}
-	result->ihl = header.ihl;
-
-	result->tos = header.tos;
-
+	/* header size matches ihl */
+	if (header_len < MIN_HEADER_SIZE || header_len > MAX_HEADER_SIZE) {return PARSE_ERR_INVALID_LENGTH;}
 	uint16_t total_len = ntohs(header.tot_len);
 	if (total_len < header_len) {return PARSE_ERR_INVALID_LENGTH;}
 	if (total_len > buffer_len) {return PARSE_ERR_TRUNCATED_PAYLOAD;}
-	result->total_len = total_len;
 
+	result->version = header.version;
+	result->ihl = header.ihl;
+	result->tos = header.tos;
+	result->total_len = total_len;
 	result->id = ntohs(header.id);
 
 	uint8_t flags_byte = ntohs(header.frag_off) >> 13;
@@ -50,7 +46,7 @@ ssize_t ipv4_parse(const uint8_t *data, size_t buffer_len, IPv4Info *result) {
 	result->dest_addr = header.daddr;
 
 	size_t options_len = header_len - sizeof(struct iphdr);
-	memcpy(result->options, data + sizeof(struct iphdr), options_len);
+	memcpy(result->options, buffer + sizeof(struct iphdr), options_len);
 	result->options_len = options_len;
 
 	return header_len;

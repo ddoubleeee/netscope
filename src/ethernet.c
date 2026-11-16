@@ -19,6 +19,7 @@ ssize_t ethernet_parse(const uint8_t *data, size_t data_len, EthernetInfo *resul
 	return sizeof(struct ethhdr);
 }
 
+
 void ethernet_print(const EthernetInfo *info) {
 	printf("===== Ethernet Header ==================================\n");
 	printf("dest: ");
@@ -32,7 +33,23 @@ void ethernet_print(const EthernetInfo *info) {
 		printf("%02x ", info->src[i]);
 	}
 	printf("\n");
-	printf("EtherType: 0x%04x (%s)\n", info->ethertype, info->ethertype == ETH_P_IP ? "IPv4" : ETH_P_IPV6? "IPv6" : "");
+	printf("EtherType: 0x%04x (%s)\n", info->ethertype, ethertype_name(info->ethertype));
 	printf("========================================================\n");
+}
 
+
+const char *ethertype_name(uint16_t ethertype) {
+    switch (ethertype) {
+        case ETH_P_IP:
+            return "IPv4";
+
+        case ETH_P_IPV6:
+            return "IPv6";
+
+        case ETH_P_ARP:
+            return "ARP";
+
+        default:
+            return "Unknown";
+    }
 }

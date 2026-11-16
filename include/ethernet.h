@@ -16,6 +16,6 @@ typedef struct EthernetInfo {
 
 ssize_t ethernet_parse(const uint8_t *data, size_t data_len, EthernetInfo *result);
 void ethernet_print(const EthernetInfo *info);
-
+const char *ethertype_name(uint16_t ethertype);
 
 #endif

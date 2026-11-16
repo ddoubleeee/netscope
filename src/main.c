@@ -6,6 +6,7 @@
 #include "ethernet.h"
 #include "ipv4.h"
 #include "ipv6.h"
+#include "arp.h"
 
 int main() {
 
@@ -18,6 +19,11 @@ int main() {
 
 	EthernetInfo ethernet_hdr;
 	ssize_t parsed = ethernet_parse(current, bytes_read, &ethernet_hdr);
+	if (parsed < 0) {
+    	fprintf(stderr, "Parsing failed: %zd\n", parsed);
+    	close(fd);
+    	return EXIT_FAILURE;
+    }
 	ethernet_print(&ethernet_hdr);
 	current += parsed;
 
@@ -30,6 +36,11 @@ int main() {
 		IPv6Info ipv6_hdr;
 		ipv6_parse(current, bytes_read - parsed, &ipv6_hdr);
 		ipv6_print(&ipv6_hdr);
+	}
+	else if (ethernet_hdr.ethertype == ETH_P_ARP) {
+		ARPInfo arp_hdr;
+		arp_parse(current, bytes_read - parsed, &arp_hdr);
+		arp_print(&arp_hdr);
 	}
 	return 0;
 }

@@ -10,6 +10,7 @@
 #include "ipv6.h"
 #include "udp.h"
 #include "arp.h"
+#include "tcp.h"
 
 int main() {
 
@@ -43,6 +44,11 @@ int main() {
 			UDPInfo udp_hdr;
 			udp_parse(current, remaining, &udp_hdr);
 			udp_print(&udp_hdr);
+		}
+		else if (ipv4_hdr.protocol == IPPROTO_TCP) {
+			TCPInfo tcp_hdr;
+			tcp_parse(current, remaining, &tcp_hdr);
+			tcp_print(&tcp_hdr);
 		}
 	}
 	else if (ethernet_hdr.ethertype == ETH_P_IPV6) {

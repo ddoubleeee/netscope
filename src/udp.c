@@ -14,12 +14,12 @@ ssize_t udp_parse(const uint8_t *buffer, size_t buffer_len, UDPInfo *result) {
 	if (buffer_len < sizeof(struct udphdr)) {return PARSE_ERR_TRUNCATED_HEADER;}
 	memcpy(&header, buffer, sizeof(struct udphdr));
 
-	if (header.len < sizeof(struct udphdr)) {return PARSE_ERR_INVALID_LENGTH;}
-	if (header.len > buffer_len) {return PARSE_ERR_TRUNCATED_HEADER;}
 
 	result->src_port = ntohs(header.source);
 	result->dest_port = ntohs(header.dest);
 	result->len = ntohs(header.len);
+	if (result->len < sizeof(struct udphdr)) {return PARSE_ERR_INVALID_LENGTH;}
+	if (result->len > buffer_len) {return PARSE_ERR_TRUNCATED_HEADER;}
 	result->checksum = ntohs(header.check);
 
 	return sizeof(struct udphdr);
